@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# Weather App (But Actually Cool) 🌦️
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern weather dashboard built with React + TypeScript featuring geolocation support, animated weather backgrounds, 7-day forecast charts, saved cities, and severe weather alerts.
 
-Currently, two official plugins are available:
+This project is designed as both a practical daily-use app and a portfolio-ready example of clean UI, scalable architecture, and modern frontend state management.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## ✨ Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- 📍 **Geolocation Forecast**
+  - Uses browser geolocation to load local weather
+  - Falls back to a default city when location is unavailable
 
-## Expanding the ESLint configuration
+- 🎨 **Weather Scene Backgrounds**
+  - Dynamic background system based on current conditions
+  - Designed to support animated effects (cloud drift, rain particles, snow, night sky, etc.)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- 📈 **7-Day Forecast Charts**
+  - High/Low temperature trend chart
+  - Expandable support for precipitation and wind charts
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- ⭐ **Saved Cities**
+  - Save frequently checked locations
+  - Stored locally using LocalStorage (offline-friendly)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- ⚠️ **Severe Weather Alerts**
+  - Alert banner system ready for real API integration
+  - Designed for expandable detail panels and severity indicators
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🛠️ Tech Stack
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **React 19**
+- **TypeScript**
+- **Vite**
+- **TailwindCSS**
+- **TanStack Query (React Query)**
+- **Axios**
+- **Zod**
+- **Recharts**
+- **Framer Motion**
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## 📂 Project Structure
+
+```txt
+src/
+  api/ # API clients + schemas + provider adapters
+  components/ # Reusable UI components
+  features/ # Route-based feature modules
+  hooks/ # Custom hooks (geolocation, localStorage, etc.)
+  store/ # LocalStorage-based stores
+  utils/ # Helper functions (formatting, condition mapping, etc.)
+
+  App.tsx
+  main.tsx
+  index.css
 ```
