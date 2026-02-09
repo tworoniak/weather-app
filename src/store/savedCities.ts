@@ -1,0 +1,33 @@
+import { SavedCitiesSchema, type SavedCity } from '../api/schemas';
+
+const KEY = 'weather:savedCities:v1';
+
+function safeRead(): SavedCity[] {
+  const raw = localStorage.getItem(KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return SavedCitiesSchema.parse(parsed);
+  } catch {
+    return [];
+  }
+}
+
+export function getSavedCities(): SavedCity[] {
+  return safeRead();
+}
+
+export function saveCities(cities: SavedCity[]) {
+  localStorage.setItem(KEY, JSON.stringify(cities));
+}
+
+export function addCity(city: SavedCity) {
+  const existing = safeRead();
+  if (existing.some((c) => c.id === city.id)) return;
+  saveCities([city, ...existing]);
+}
+
+export function removeCity(id: string) {
+  const existing = safeRead();
+  saveCities(existing.filter((c) => c.id !== id));
+}

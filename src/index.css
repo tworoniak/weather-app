@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+
+@import 'tailwindcss';
+@tailwind utilities;
+
+@config "../tailwind.config.js";
+
+/* Global styles for html/body */
+@layer base {
+  html {
+    @apply bg-background text-text;
+  }
+}
+
+/* Optional utility for subtle photo hover effect */
+@layer components {
+  .photo-hover {
+    @apply transition-transform duration-300 hover:scale-[1.02];
+  }
+}
+
+html,
+body {
+  height: 100%;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100%;
+}
