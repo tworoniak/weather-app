@@ -48,14 +48,36 @@ This project is designed as both a practical daily-use app and a portfolio-ready
 
 ```txt
 src/
-  api/ # API clients + schemas + provider adapters
-  components/ # Reusable UI components
-  features/ # Route-based feature modules
-  hooks/ # Custom hooks (geolocation, localStorage, etc.)
-  store/ # LocalStorage-based stores
-  utils/ # Helper functions (formatting, condition mapping, etc.)
+  api/ # API client + schemas + weather provider logic
+    client.ts
+    schemas.ts
+    weather.ts
 
-  App.tsx
-  main.tsx
-  index.css
+  assets/ # Static assets bundled by Vite
+    react.svg
+
+  components/ # Reusable UI components
+    AlertsBanner.tsx
+    ForecastCharts.tsx
+    WeatherScene.tsx
+
+  features/ # Route-based feature modules (pages)
+    city/
+      CityPage.tsx
+    dashboard/
+      DashboardPage.tsx
+    saved/
+      SavedCitiesPage.tsx
+
+  hooks/ # Custom React hooks
+    useGeolocation.ts
+    useLocalStorage.ts
+
+  store/ # LocalStorage-based stores
+    savedCities.ts
+
+  App.tsx # App layout + routes
+  main.tsx # React app bootstrap + Query Provider
+  index.css # Global styles (Tailwind)
+
 ```
