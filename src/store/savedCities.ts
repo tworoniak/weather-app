@@ -34,7 +34,11 @@ export function addCity(city: SavedCity) {
     addedAt: city.addedAt ?? Date.now(),
   };
 
-  saveCities([withAddedAt, ...existing]);
+  saveCities(
+    [withAddedAt, ...existing].sort(
+      (a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0),
+    ),
+  );
 }
 
 export function removeCity(id: string) {
