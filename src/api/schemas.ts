@@ -14,7 +14,7 @@ export const SavedCitySchema = z.object({
   country: z.string(),
   lat: z.number(),
   lon: z.number(),
-  addedAt: z.number(),
+  addedAt: z.number().optional(),
 });
 
 export type SavedCity = z.infer<typeof SavedCitySchema>;

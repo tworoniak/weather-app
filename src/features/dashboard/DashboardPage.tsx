@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import WeatherScene from '../../components/WeatherScene';
 import ForecastCharts from '../../components/ForecastCharts';
 import AlertsBanner from '../../components/AlertsBanner';
+import CitySearch from '../../components/CitySearch';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { fetchWeatherByCoords } from '../../api/weather';
 
@@ -37,6 +38,8 @@ export default function DashboardPage() {
             <div className='text-xs text-white/70'>Dashboard</div>
             <h1 className='text-xl font-semibold'>Local Forecast</h1>
           </div>
+
+          <CitySearch />
 
           <div className='flex items-center gap-2'>
             <button

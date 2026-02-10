@@ -17,6 +17,10 @@ export function getSavedCities(): SavedCity[] {
   return safeRead();
 }
 
+export function getSavedCityById(id: string): SavedCity | undefined {
+  return safeRead().find((c) => c.id === id);
+}
+
 export function saveCities(cities: SavedCity[]) {
   localStorage.setItem(KEY, JSON.stringify(cities));
 }
@@ -24,7 +28,13 @@ export function saveCities(cities: SavedCity[]) {
 export function addCity(city: SavedCity) {
   const existing = safeRead();
   if (existing.some((c) => c.id === city.id)) return;
-  saveCities([city, ...existing]);
+
+  const withAddedAt: SavedCity = {
+    ...city,
+    addedAt: city.addedAt ?? Date.now(),
+  };
+
+  saveCities([withAddedAt, ...existing]);
 }
 
 export function removeCity(id: string) {

@@ -29,8 +29,20 @@ export default function ForecastCharts({ data }: { data: WeatherSnapshot }) {
             <XAxis dataKey='day' />
             <YAxis />
             <Tooltip />
-            <Line type='monotone' dataKey='high' strokeWidth={2} dot={false} />
-            <Line type='monotone' dataKey='low' strokeWidth={2} dot={false} />
+            <Line
+              type='monotone'
+              dataKey='high'
+              stroke='#f97316'
+              strokeWidth={2}
+              dot={false}
+            />
+            <Line
+              type='monotone'
+              dataKey='low'
+              stroke='#38bdf8'
+              strokeWidth={2}
+              dot={false}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
