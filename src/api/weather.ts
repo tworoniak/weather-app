@@ -4,21 +4,25 @@ import { WeatherSnapshotSchema } from './schemas';
 import { getSavedCityById } from '../store/savedCities';
 
 type OpenMeteoForecast = {
-  timezone?: string;
-  utc_offset_seconds?: number;
-
   current?: {
     time: string;
     temperature_2m?: number;
     apparent_temperature?: number;
     relative_humidity_2m?: number;
     wind_speed_10m?: number;
-    is_day?: number; // 1 day, 0 night
+    is_day?: number;
     weather_code?: number;
   };
 
+  hourly?: {
+    time: string[];
+    temperature_2m?: (number | null)[];
+    precipitation_probability?: (number | null)[];
+    wind_speed_10m?: (number | null)[];
+  };
+
   daily?: {
-    time: string[]; // yyyy-mm-dd
+    time: string[];
     temperature_2m_max?: number[];
     temperature_2m_min?: number[];
     precipitation_probability_max?: (number | null)[];
@@ -31,7 +35,6 @@ type OpenMeteoForecast = {
 function weatherCodeToCondition(code: number | null | undefined): string {
   if (code == null) return 'Unknown';
 
-  // WMO code groupings per Open-Meteo docs
   if (code === 0) return 'Clear';
   if (code === 1 || code === 2 || code === 3) return 'Clouds';
   if (code === 45 || code === 48) return 'Fog';
@@ -50,6 +53,7 @@ function weatherCodeToCondition(code: number | null | undefined): string {
 
 export async function fetchWeatherByCoords(
   coords: Coords,
+  placeName?: string,
 ): Promise<WeatherSnapshot> {
   const res = await api.get<OpenMeteoForecast>('/v1/forecast', {
     params: {
@@ -65,6 +69,12 @@ export async function fetchWeatherByCoords(
         'weather_code',
       ].join(','),
 
+      hourly: [
+        'temperature_2m',
+        'precipitation_probability',
+        'wind_speed_10m',
+      ].join(','),
+
       daily: [
         'temperature_2m_max',
         'temperature_2m_min',
@@ -77,7 +87,6 @@ export async function fetchWeatherByCoords(
       forecast_days: 7,
       timezone: 'auto',
 
-      // US-friendly defaults (change later via settings toggle)
       temperature_unit: 'fahrenheit',
       wind_speed_unit: 'mph',
       precipitation_unit: 'inch',
@@ -86,37 +95,43 @@ export async function fetchWeatherByCoords(
 
   const data = res.data;
 
-  const currentTemp = data.current?.temperature_2m ?? 0;
-  const currentFeels = data.current?.apparent_temperature;
-  const currentHumidity = data.current?.relative_humidity_2m;
-  const currentWind = data.current?.wind_speed_10m;
-  const currentIsDay = data.current?.is_day === 1;
-  const currentCode = data.current?.weather_code ?? null;
+  const hourlyTimes = data.hourly?.time ?? [];
+  const hourlyTemps = data.hourly?.temperature_2m ?? [];
+  const hourlyPrecip = data.hourly?.precipitation_probability ?? [];
+  const hourlyWind = data.hourly?.wind_speed_10m ?? [];
 
-  const dailyTimes = data.daily?.time ?? [];
-  const highs = data.daily?.temperature_2m_max ?? [];
-  const lows = data.daily?.temperature_2m_min ?? [];
-  const precip = data.daily?.precipitation_probability_max ?? [];
-  const dailyCodes = data.daily?.weather_code ?? [];
+  // Keep just the next 48 hours for a clean chart
+  const hourly = hourlyTimes.slice(0, 48).map((time, i) => ({
+    time,
+    temp: hourlyTemps[i] ?? undefined,
+    precipChance: hourlyPrecip[i] ?? undefined,
+    wind: hourlyWind[i] ?? undefined,
+  }));
+
+  const fallbackName = `Lat ${coords.lat.toFixed(2)}, Lon ${coords.lon.toFixed(2)}`;
 
   const snapshot: WeatherSnapshot = {
-    placeName: `Lat ${coords.lat.toFixed(2)}, Lon ${coords.lon.toFixed(2)}`,
+    placeName: placeName ?? fallbackName,
     updatedAt: Date.now(),
     current: {
-      temp: currentTemp,
-      feelsLike: currentFeels,
-      wind: currentWind,
-      humidity: currentHumidity,
-      condition: weatherCodeToCondition(currentCode),
-      isDay: currentIsDay,
+      temp: data.current?.temperature_2m ?? 0,
+      feelsLike: data.current?.apparent_temperature ?? undefined,
+      wind: data.current?.wind_speed_10m ?? undefined,
+      humidity: data.current?.relative_humidity_2m ?? undefined,
+      condition: weatherCodeToCondition(data.current?.weather_code ?? null),
+      isDay: data.current?.is_day === 1,
     },
-    daily: dailyTimes.slice(0, 7).map((date, i) => ({
+    daily: (data.daily?.time ?? []).slice(0, 7).map((date, i) => ({
       date,
-      tempHigh: highs[i] ?? currentTemp,
-      tempLow: lows[i] ?? currentTemp,
-      precipChance: precip[i] ?? undefined,
-      condition: weatherCodeToCondition(dailyCodes[i] ?? null),
+      tempHigh: (data.daily?.temperature_2m_max ?? [])[i] ?? 0,
+      tempLow: (data.daily?.temperature_2m_min ?? [])[i] ?? 0,
+      precipChance:
+        (data.daily?.precipitation_probability_max ?? [])[i] ?? undefined,
+      condition: weatherCodeToCondition(
+        (data.daily?.weather_code ?? [])[i] ?? null,
+      ),
     })),
+    hourly,
     alerts: undefined,
   };
 
@@ -132,5 +147,9 @@ export async function fetchWeatherByCity(
     throw new Error('City not found in saved cities.');
   }
 
-  return fetchWeatherByCoords({ lat: city.lat, lon: city.lon });
+  const label = `${city.name}${city.region ? `, ${city.region}` : ''}${
+    city.country ? `, ${city.country}` : ''
+  }`;
+
+  return fetchWeatherByCoords({ lat: city.lat, lon: city.lon }, label);
 }

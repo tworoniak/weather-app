@@ -7,7 +7,7 @@ const geocodeApi = axios.create({
 });
 
 const GeoResultSchema = z.object({
-  id: z.number(),
+  id: z.number().optional(),
   name: z.string(),
   latitude: z.number(),
   longitude: z.number(),
@@ -28,4 +28,28 @@ export async function searchCities(q: string): Promise<GeoResult[]> {
 
   const parsed = GeoResponseSchema.parse(res.data);
   return parsed.results ?? [];
+}
+
+export async function reverseGeocode(
+  lat: number,
+  lon: number,
+): Promise<GeoResult | null> {
+  const res = await geocodeApi.get('/v1/reverse', {
+    params: {
+      latitude: lat,
+      longitude: lon,
+      count: 1,
+      language: 'en',
+      format: 'json',
+    },
+  });
+
+  const parsed = GeoResponseSchema.parse(res.data);
+  return parsed.results?.[0] ?? null;
+}
+
+export function formatPlaceName(r: GeoResult): string {
+  const region = r.admin1 ? `, ${r.admin1}` : '';
+  const country = r.country ? `, ${r.country}` : '';
+  return `${r.name}${region}${country}`;
 }

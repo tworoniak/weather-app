@@ -36,7 +36,7 @@ export default function App() {
             <Sun />
           </div>
           <div className='leading-tight'>
-            <div className='text-sm opacity-80'>Weather</div>
+            <div className='text-sm opacity-80'>ReactWeather</div>
             <div className='text-lg font-semibold'>But Actually Cool</div>
           </div>
         </div>
