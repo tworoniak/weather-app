@@ -1,38 +1,45 @@
-import { useState } from 'react';
 import type { WeatherSnapshot } from '../api/schemas';
+
+type Alert = NonNullable<WeatherSnapshot['alerts']>[number];
 
 export default function AlertsBanner({ data }: { data: WeatherSnapshot }) {
   const alerts = data.alerts ?? [];
-  const [open, setOpen] = useState(true);
 
-  if (!alerts.length || !open) return null;
+  if (alerts.length === 0) return null;
 
   return (
-    <div className='mb-4 rounded-3xl bg-white/10 p-4 ring-1 ring-white/15'>
-      <div className='flex items-start justify-between gap-4'>
+    <div className='rounded-3xl bg-amber-500/10 p-4 ring-1 ring-amber-400/20'>
+      <div className='flex items-start justify-between gap-3'>
         <div>
-          <div className='text-sm font-semibold'>Severe Weather Alerts</div>
-          <div className='text-xs text-white/70'>{alerts.length} active</div>
+          <div className='text-sm font-semibold text-amber-100'>
+            Weather Alerts
+          </div>
+          <div className='text-xs text-amber-100/70'>
+            {alerts.length} active alert{alerts.length === 1 ? '' : 's'}
+          </div>
         </div>
-        <button
-          onClick={() => setOpen(false)}
-          className='rounded-xl bg-white/10 px-3 py-1 text-xs hover:bg-white/15'
-        >
-          Dismiss
-        </button>
+
+        <div className='rounded-full bg-amber-500/15 px-3 py-1 text-xs text-amber-100 ring-1 ring-amber-300/20'>
+          Active
+        </div>
       </div>
 
-      <div className='mt-3 space-y-3'>
-        {alerts.map((a) => (
-          <div key={a.id} className='rounded-2xl bg-black/20 p-3'>
-            <div className='text-sm font-medium'>{a.title}</div>
-            {a.severity ? (
-              <div className='text-xs text-white/70'>
-                Severity: {a.severity}
-              </div>
-            ) : null}
+      <div className='mt-3 space-y-2'>
+        {alerts.map((a: Alert) => (
+          <div
+            key={a.id}
+            className='rounded-2xl bg-black/20 p-3 ring-1 ring-white/10'
+          >
+            <div className='text-sm font-medium text-white/90'>{a.title}</div>
+
+            <div className='mt-1 text-xs text-white/70'>
+              Severity: <span className='text-white/80'>{a.severity}</span>
+            </div>
+
             {a.description ? (
-              <p className='mt-2 text-sm text-white/80'>{a.description}</p>
+              <div className='mt-2 text-xs text-white/70 line-clamp-3'>
+                {a.description}
+              </div>
             ) : null}
           </div>
         ))}
