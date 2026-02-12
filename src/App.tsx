@@ -2,6 +2,8 @@ import { Routes, Route, NavLink } from 'react-router-dom';
 import DashboardPage from './features/dashboard/DashboardPage';
 import SavedCitiesPage from './features/saved/SavedCitiesPage';
 import CityPage from './features/city/CityPage';
+import AlertsIndicator from './components/AlertsIndicator';
+
 import { Sun } from 'lucide-react';
 
 function Nav() {
@@ -29,7 +31,7 @@ function Nav() {
 export default function App() {
   return (
     <div className='min-h-screen text-white'>
-      <div className='fixed inset-0 -z-10 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950' />
+      <div className='fixed inset-0 -z-10 bg-linear-to-b from-slate-950 via-slate-900 to-slate-950' />
       <header className='mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4'>
         <div className='flex items-center gap-3'>
           <div className='h-9 w-9 flex items-center justify-center rounded-2xl bg-white/10 text-accent2'>
@@ -40,6 +42,10 @@ export default function App() {
             <div className='text-lg font-semibold'>But Actually Cool</div>
           </div>
         </div>
+        <div className='flex items-center gap-3'>
+          <AlertsIndicator />
+        </div>
+
         <Nav />
       </header>
 

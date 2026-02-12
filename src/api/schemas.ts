@@ -29,6 +29,26 @@ export const HourlyPointSchema = z.object({
   wind: z.number().optional(), // mph
 });
 
+export type HourlyPoint = z.infer<typeof HourlyPointSchema>;
+
+export const WeatherAlertSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  severity: z.enum(['Extreme', 'Severe', 'Moderate', 'Minor', 'Unknown']),
+  urgency: z.enum(['Immediate', 'Expected', 'Future', 'Past', 'Unknown']),
+  certainty: z.enum(['Observed', 'Likely', 'Possible', 'Unlikely', 'Unknown']),
+  areaDesc: z.string().optional(),
+  headline: z.string().optional(),
+  description: z.string().optional(),
+  instruction: z.string().optional(),
+  effective: z.number().optional(), // epoch ms
+  expires: z.number().optional(), // epoch ms
+  sender: z.string().optional(),
+  link: z.string().optional(),
+});
+
+export type WeatherAlert = z.infer<typeof WeatherAlertSchema>;
+
 export const WeatherSnapshotSchema = z.object({
   placeName: z.string(),
   updatedAt: z.number(),
@@ -49,9 +69,8 @@ export const WeatherSnapshotSchema = z.object({
       condition: z.string(),
     }),
   ),
-  hourly: z.array(HourlyPointSchema).optional(), // ✅ NEW
-  alerts: z.any().optional(), // keep as-is for now if you already have it typed
+  hourly: z.array(HourlyPointSchema).optional(),
+  alerts: z.array(WeatherAlertSchema).optional(), // ✅ typed
 });
 
 export type WeatherSnapshot = z.infer<typeof WeatherSnapshotSchema>;
-export type HourlyPoint = z.infer<typeof HourlyPointSchema>;

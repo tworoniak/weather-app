@@ -138,9 +138,23 @@ export default function DashboardPage() {
         <div className='rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
           <div className='text-sm font-medium'>Next</div>
           <ul className='mt-2 list-disc space-y-1 pl-5 text-sm text-white/75'>
-            <li>Hourly chart toggle (temp / precip / wind)</li>
-            <li>Animated background presets</li>
-            <li>Severe alerts (NWS)</li>
+            <li>
+              Integrate real severe weather alerts using the National Weather
+              Service (NWS) API.
+            </li>
+            <li>Add settings toggles for Fahrenheit/Celsius and mph/kph.</li>
+            <li>
+              Improve city search UX with keyboard navigation and recent
+              searches.
+            </li>
+            <li>
+              Add richer hourly visualizations (humidity, UV index,
+              sunrise/sunset markers).
+            </li>
+            <li>
+              Enhance weather scenes with Canvas-based particles and smoother
+              motion transitions.
+            </li>
           </ul>
         </div>
       </div>

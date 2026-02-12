@@ -1,4 +1,6 @@
 import { api } from './client';
+import { fetchNwsAlertsByCoords } from './nws';
+
 import type { Coords, WeatherSnapshot } from './schemas';
 import { WeatherSnapshotSchema } from './schemas';
 import { getSavedCityById } from '../store/savedCities';
@@ -55,45 +57,48 @@ export async function fetchWeatherByCoords(
   coords: Coords,
   placeName?: string,
 ): Promise<WeatherSnapshot> {
-  const res = await api.get<OpenMeteoForecast>('/v1/forecast', {
-    params: {
-      latitude: coords.lat,
-      longitude: coords.lon,
+  const [meteoRes, alerts] = await Promise.all([
+    api.get<OpenMeteoForecast>('/v1/forecast', {
+      params: {
+        latitude: coords.lat,
+        longitude: coords.lon,
 
-      current: [
-        'temperature_2m',
-        'apparent_temperature',
-        'relative_humidity_2m',
-        'wind_speed_10m',
-        'is_day',
-        'weather_code',
-      ].join(','),
+        current: [
+          'temperature_2m',
+          'apparent_temperature',
+          'relative_humidity_2m',
+          'wind_speed_10m',
+          'is_day',
+          'weather_code',
+        ].join(','),
 
-      hourly: [
-        'temperature_2m',
-        'precipitation_probability',
-        'wind_speed_10m',
-      ].join(','),
+        hourly: [
+          'temperature_2m',
+          'precipitation_probability',
+          'wind_speed_10m',
+        ].join(','),
 
-      daily: [
-        'temperature_2m_max',
-        'temperature_2m_min',
-        'precipitation_probability_max',
-        'weather_code',
-        'sunrise',
-        'sunset',
-      ].join(','),
+        daily: [
+          'temperature_2m_max',
+          'temperature_2m_min',
+          'precipitation_probability_max',
+          'weather_code',
+          'sunrise',
+          'sunset',
+        ].join(','),
 
-      forecast_days: 7,
-      timezone: 'auto',
+        forecast_days: 7,
+        timezone: 'auto',
 
-      temperature_unit: 'fahrenheit',
-      wind_speed_unit: 'mph',
-      precipitation_unit: 'inch',
-    },
-  });
+        temperature_unit: 'fahrenheit',
+        wind_speed_unit: 'mph',
+        precipitation_unit: 'inch',
+      },
+    }),
+    fetchNwsAlertsByCoords(coords).catch(() => []),
+  ]);
 
-  const data = res.data;
+  const data = meteoRes.data;
 
   const hourlyTimes = data.hourly?.time ?? [];
   const hourlyTemps = data.hourly?.temperature_2m ?? [];
@@ -132,7 +137,7 @@ export async function fetchWeatherByCoords(
       ),
     })),
     hourly,
-    alerts: undefined,
+    alerts: alerts.length ? alerts : undefined, // ✅ real alerts
   };
 
   return WeatherSnapshotSchema.parse(snapshot);
