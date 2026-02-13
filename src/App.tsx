@@ -8,6 +8,7 @@ import AlertsPage from './features/alerts/AlertsPage';
 
 import AlertsIndicator from './components/AlertsIndicator';
 import LocationPickerDrawer from './components/LocationPickerDrawer';
+import AppBackground from './components/AppBackground';
 
 import { Sun, MapPin, Menu, X } from 'lucide-react';
 import { useActiveLocation } from './hooks/useActiveLocation';
@@ -68,7 +69,10 @@ export default function App() {
 
   return (
     <div className='min-h-screen text-white'>
-      <div className='fixed inset-0 -z-10 bg-linear-to-b from-slate-950 via-slate-900 to-slate-950' />
+      {/* Full-viewport animated background */}
+      <AppBackground />
+      {/* subtle contrast overlay so UI stays readable */}
+      <div className='fixed inset-0 -z-10 bg-black/20' />
 
       <header className='mx-auto w-full max-w-5xl px-4 pt-4'>
         {/* Row 1 */}
@@ -93,7 +97,7 @@ export default function App() {
               title='Choose location'
             >
               <MapPin size={16} className='text-white/70' />
-              <span className='max-w-[220px] truncate'>{locationLabel}</span>
+              <span className='max-w-55 truncate'>{locationLabel}</span>
             </button>
 
             <AlertsIndicator />
@@ -119,7 +123,10 @@ export default function App() {
         <div className='mt-3 md:hidden'>
           <button
             type='button'
-            onClick={() => setLocationOpen(true)}
+            onClick={() => {
+              setMobileNavOpen(false);
+              setLocationOpen(true);
+            }}
             className='flex w-full items-center justify-between gap-2 rounded-2xl bg-white/10 px-3 py-2 text-sm font-medium ring-1 ring-white/10 hover:bg-white/15'
             title='Choose location'
           >

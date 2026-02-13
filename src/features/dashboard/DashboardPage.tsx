@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import WeatherScene from '../../components/WeatherScene';
+// import WeatherScene from '../../components/WeatherScene';
 import ForecastCharts from '../../components/ForecastCharts';
 import AlertsBanner from '../../components/AlertsBanner';
 import CitySearch from '../../components/CitySearch';
@@ -90,8 +90,8 @@ export default function DashboardPage() {
     queryFn: () => fetchWeatherByCoords(coords, placeName),
   });
 
-  const condition = weatherQ.data?.current.condition ?? 'Loading';
-  const isDay = weatherQ.data?.current.isDay ?? true;
+  // const condition = weatherQ.data?.current.condition ?? 'Loading';
+  // const isDay = weatherQ.data?.current.isDay ?? true;
 
   const locationChip = useMemo(() => {
     if (active.kind === 'geo') return 'Current location';
@@ -104,9 +104,9 @@ export default function DashboardPage() {
     <div className='relative'>
       <div className='space-y-4'>
         <div className='relative rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
-          <div className='absolute inset-0 -z-10'>
+          {/* <div className='absolute inset-0 -z-10'>
             <WeatherScene condition={condition} isDay={isDay} />
-          </div>
+          </div> */}
           <div className='flex flex-wrap items-center justify-between gap-3'>
             <div>
               <div className='text-xs text-white/70'>Dashboard</div>

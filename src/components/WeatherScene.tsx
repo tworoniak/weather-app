@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { conditionToScene, type SceneId } from '../utils/conditionToScene';
 
 export default function WeatherScene({
@@ -14,7 +14,8 @@ export default function WeatherScene({
   );
 
   return (
-    <div className='relative h-full w-full rounded-2xl overflow-hidden'>
+    // ✅ make this background-friendly (no rounding). Your page should place it with absolute inset-0 -z-10
+    <div className='pointer-events-none absolute inset-0 overflow-hidden'>
       {/* Scene stack (crossfade by opacity) */}
       <SceneLayer active={scene === 'clear-day'}>
         <ClearDay />
@@ -45,17 +46,7 @@ export default function WeatherScene({
       </SceneLayer>
 
       {/* Foreground veil to improve contrast */}
-      <div className='pointer-events-none absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/35' />
-
-      {/* Optional small badge */}
-      {/* <div className='relative p-4'>
-        <div className='flex items-center justify-between gap-3'>
-          <div className='text-xs text-white/70'>Atmosphere</div>
-          <div className='rounded-full bg-white/10 px-3 py-1 text-xs text-white/80 ring-1 ring-white/10'>
-            {condition}
-          </div>
-        </div>
-      </div> */}
+      <div className='absolute inset-0 bg-linear-to-b from-black/20 via-black/10 to-black/35' />
 
       <SceneStyles />
     </div>
@@ -79,6 +70,93 @@ function SceneLayer({
     >
       {children}
     </div>
+  );
+}
+
+/* ------------------ RAIN PARTICLES (CANVAS) ------------------ */
+
+function RainParticles({ enabled = true }: { enabled?: boolean }) {
+  const ref = useRef<HTMLCanvasElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const canvas = ref.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let w = 0;
+    let h = 0;
+
+    const drops = Array.from({ length: 160 }).map(() => ({
+      x: Math.random(),
+      y: Math.random(),
+      len: 0.08 + Math.random() * 0.14,
+      speed: 0.35 + Math.random() * 0.95,
+      thick: 1 + Math.random() * 1.5,
+      alpha: 0.14 + Math.random() * 0.25,
+    }));
+
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      w = canvas.clientWidth;
+      h = canvas.clientHeight;
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    const tick = () => {
+      ctx.clearRect(0, 0, w, h);
+
+      for (const d of drops) {
+        d.y += d.speed * 0.012;
+        d.x += d.speed * 0.004;
+
+        if (d.y > 1.1) {
+          d.y = -0.1;
+          d.x = Math.random();
+        }
+        if (d.x > 1.1) d.x = -0.1;
+
+        const x = d.x * w;
+        const y = d.y * h;
+
+        const dx = 12; // slant
+        const dy = d.len * h;
+
+        ctx.strokeStyle = `rgba(255,255,255,${d.alpha})`;
+        ctx.lineWidth = d.thick;
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + dx, y + dy);
+        ctx.stroke();
+      }
+
+      rafRef.current = window.requestAnimationFrame(tick);
+    };
+
+    rafRef.current = window.requestAnimationFrame(tick);
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [enabled]);
+
+  return (
+    <canvas
+      ref={ref}
+      className='absolute inset-0 h-full w-full'
+      aria-hidden='true'
+    />
   );
 }
 
@@ -109,7 +187,12 @@ function Cloudy() {
   return (
     <div className='absolute inset-0'>
       <div className='absolute inset-0 bg-[linear-gradient(135deg,rgba(148,163,184,0.25),rgba(30,41,59,0.55))]' />
+
+      {/* ✅ add parallax cloud layers for more “wow” */}
       <div className='absolute inset-0 scene-clouds' />
+      <div className='absolute inset-0 scene-clouds scene-clouds-slow opacity-70' />
+      <div className='absolute inset-0 scene-clouds scene-clouds-fast opacity-50' />
+
       <div className='absolute inset-0 scene-grain opacity-25' />
     </div>
   );
@@ -119,8 +202,14 @@ function Rain() {
   return (
     <div className='absolute inset-0'>
       <div className='absolute inset-0 bg-[linear-gradient(135deg,rgba(30,41,59,0.75),rgba(2,6,23,0.85))]' />
+
+      {/* clouds */}
       <div className='absolute inset-0 scene-clouds opacity-80' />
-      <div className='absolute inset-0 scene-rain' />
+      <div className='absolute inset-0 scene-clouds scene-clouds-slow opacity-60' />
+
+      {/* ✅ REPLACED: CSS repeating rain → canvas particles */}
+      <RainParticles />
+
       <div className='absolute inset-0 scene-grain opacity-30' />
       <div className='absolute inset-0 bg-[radial-gradient(circle_at_70%_40%,rgba(56,189,248,0.12),transparent_55%)]' />
     </div>
@@ -154,7 +243,8 @@ function Thunder() {
     <div className='absolute inset-0'>
       <div className='absolute inset-0 bg-[linear-gradient(135deg,rgba(2,6,23,0.92),rgba(15,23,42,0.85))]' />
       <div className='absolute inset-0 scene-clouds opacity-85' />
-      <div className='absolute inset-0 scene-rain opacity-90' />
+      {/* you can swap this to RainParticles too if you want */}
+      <RainParticles />
       <div className='absolute inset-0 scene-lightning' />
       <div className='absolute inset-0 scene-grain opacity-35' />
     </div>
@@ -185,7 +275,6 @@ function Stars() {
 function SceneStyles() {
   return (
     <style>{`
-      /* subtle texture */
       .scene-grain {
         background-image:
           url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
@@ -202,7 +291,6 @@ function SceneStyles() {
         100% { transform: translate3d(0,0,0); }
       }
 
-      /* clouds */
       .scene-clouds {
         background-image:
           radial-gradient(closest-side at 20% 35%, rgba(255,255,255,0.10), transparent 65%),
@@ -212,35 +300,18 @@ function SceneStyles() {
           radial-gradient(closest-side at 70% 70%, rgba(255,255,255,0.07), transparent 72%);
         filter: blur(2px);
         animation: cloudsDrift 20s linear infinite;
+        transform: translateZ(0);
       }
+
+      /* ✅ parallax variants */
+      .scene-clouds-slow { animation-duration: 34s; filter: blur(3px); transform: scale(1.08); }
+      .scene-clouds-fast { animation-duration: 14s; filter: blur(1.5px); transform: scale(1.02); }
 
       @keyframes cloudsDrift {
         0%   { transform: translate3d(-4%, 0, 0); }
         100% { transform: translate3d(4%, 0, 0); }
       }
 
-      /* rain */
-      .scene-rain {
-        background-image:
-          repeating-linear-gradient(
-            115deg,
-            rgba(255,255,255,0.00) 0px,
-            rgba(255,255,255,0.00) 6px,
-            rgba(255,255,255,0.12) 7px,
-            rgba(255,255,255,0.00) 9px
-          );
-        background-size: 180px 180px;
-        animation: rainFall 0.55s linear infinite;
-        opacity: 0.9;
-        transform: translateZ(0);
-      }
-
-      @keyframes rainFall {
-        0%   { background-position: 0px 0px; }
-        100% { background-position: 0px 180px; }
-      }
-
-      /* snow: gentle drifting specks */
       .scene-snow {
         background-image:
           radial-gradient(2px 2px at 10% 15%, rgba(255,255,255,0.65) 50%, transparent 51%),
@@ -260,7 +331,6 @@ function SceneStyles() {
         100% { background-position: 0px 220px; transform: translate3d(6px, 0, 0); }
       }
 
-      /* fog: layered gradients drifting */
       .scene-fog {
         background-image:
           radial-gradient(closest-side at 30% 60%, rgba(255,255,255,0.16), transparent 70%),
@@ -277,7 +347,6 @@ function SceneStyles() {
         100% { transform: translate3d(-3%, 0, 0); }
       }
 
-      /* lightning: periodic quick flashes */
       .scene-lightning {
         background: rgba(255,255,255,0);
         animation: lightning 6.5s infinite;
@@ -292,7 +361,6 @@ function SceneStyles() {
         76.4% { background: rgba(255,255,255,0.00); }
       }
 
-      /* sun/moon float */
       .scene-sun { animation: floaty 6s ease-in-out infinite; }
       .scene-moon { animation: floaty 8s ease-in-out infinite; }
 
