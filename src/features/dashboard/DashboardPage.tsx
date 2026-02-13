@@ -1,43 +1,86 @@
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+
 import WeatherScene from '../../components/WeatherScene';
 import ForecastCharts from '../../components/ForecastCharts';
 import AlertsBanner from '../../components/AlertsBanner';
 import CitySearch from '../../components/CitySearch';
+
 import { useGeolocation } from '../../hooks/useGeolocation';
+import { useActiveLocation } from '../../hooks/useActiveLocation';
+import { useSavedCities } from '../../hooks/useSavedCities';
+
 import { fetchWeatherByCoords } from '../../api/weather';
 import { reverseGeocode, formatPlaceName } from '../../api/geocode';
+import type { Coords } from '../../api/schemas';
+
+const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 };
+const FALLBACK_LABEL = 'Kansas City, MO, US';
+
+function cityLabel(name: string, region?: string, country?: string) {
+  return `${name}${region ? `, ${region}` : ''}${country ? `, ${country}` : ''}`;
+}
 
 export default function DashboardPage() {
+  const { active, setActive } = useActiveLocation();
+  const { cities } = useSavedCities();
+
   const { state, request, canUse } = useGeolocation({
     enableHighAccuracy: false,
     timeout: 30_000,
     maximumAge: 10 * 60_000,
   });
 
-  const fallbackCoords = { lat: 39.0997, lon: -94.5786 };
-  const fallbackLabel = 'Kansas City, MO, US';
+  const geoCoords: Coords | null =
+    state.status === 'ready' ? state.coords : null;
 
-  const effectiveCoords =
-    state.status === 'ready' ? state.coords : fallbackCoords;
+  const selectedCity = useMemo(() => {
+    if (active.kind !== 'city') return null;
+    return cities.find((c) => c.id === active.cityId) ?? null;
+  }, [active, cities]);
 
-  // Reverse geocode only when we have a real GPS fix (not fallback)
+  const effectiveCoords: Coords = useMemo(() => {
+    if (selectedCity) return { lat: selectedCity.lat, lon: selectedCity.lon };
+    if (active.kind === 'geo' && geoCoords) return geoCoords;
+    return FALLBACK_COORDS;
+  }, [selectedCity, active.kind, geoCoords]);
+
+  const basePlaceName = useMemo(() => {
+    if (selectedCity) {
+      return cityLabel(
+        selectedCity.name,
+        selectedCity.region,
+        selectedCity.country,
+      );
+    }
+    if (active.kind === 'fallback') return FALLBACK_LABEL;
+    // geo: we’ll try reverse geocode when ready; otherwise show a helpful placeholder
+    return undefined;
+  }, [selectedCity, active.kind]);
+
+  // Reverse geocode only when:
+  // - active location is geo
+  // - and we have a real fix
   const placeQ = useQuery({
     queryKey: [
       'reverse',
       effectiveCoords.lat,
       effectiveCoords.lon,
-      state.status,
+      active.kind,
     ],
     queryFn: async () => {
       const r = await reverseGeocode(effectiveCoords.lat, effectiveCoords.lon);
       return r ? formatPlaceName(r) : null;
     },
-    enabled: state.status === 'ready',
+    enabled: active.kind === 'geo' && !!geoCoords,
     staleTime: 60 * 60 * 1000,
   });
 
-  const placeName =
-    state.status === 'ready' ? (placeQ.data ?? undefined) : fallbackLabel;
+  const placeName = useMemo(() => {
+    if (basePlaceName) return basePlaceName;
+    if (active.kind === 'geo') return placeQ.data ?? undefined;
+    return FALLBACK_LABEL;
+  }, [basePlaceName, active.kind, placeQ.data]);
 
   const weatherQ = useQuery({
     queryKey: [
@@ -51,11 +94,16 @@ export default function DashboardPage() {
   });
 
   const condition = weatherQ.data?.current.condition ?? 'Loading';
-
-  const locationLabel =
-    state.status === 'ready' ? 'Current location' : 'Fallback: Kansas City';
-
   const isDay = weatherQ.data?.current.isDay ?? true;
+
+  const locationLabel = useMemo(() => {
+    if (selectedCity) return 'Saved city';
+    if (active.kind === 'geo')
+      return geoCoords
+        ? 'Current location'
+        : 'Current location (waiting for GPS…)';
+    return 'Fallback: Kansas City';
+  }, [selectedCity, active.kind, geoCoords]);
 
   return (
     <div className='relative'>
@@ -72,7 +120,10 @@ export default function DashboardPage() {
 
             <div className='flex items-center gap-2'>
               <button
-                onClick={request}
+                onClick={() => {
+                  setActive({ kind: 'geo' });
+                  request();
+                }}
                 className='rounded-2xl bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/15'
                 disabled={!canUse || state.status === 'loading'}
               >
@@ -86,12 +137,16 @@ export default function DashboardPage() {
               {locationLabel}
             </span>
 
-            {state.status === 'ready' && placeQ.isFetching ? (
+            {active.kind === 'geo' && geoCoords && placeQ.isFetching ? (
               <span className='text-xs text-white/60'>Resolving city…</span>
+            ) : null}
+
+            {active.kind === 'geo' && state.status === 'error' ? (
+              <span className='text-xs text-white/60'>GPS error</span>
             ) : null}
           </div>
 
-          {state.status === 'error' ? (
+          {active.kind === 'geo' && state.status === 'error' ? (
             <div className='mt-4 rounded-2xl bg-black/20 p-3 text-sm text-white/80'>
               {state.message}
             </div>
@@ -138,23 +193,9 @@ export default function DashboardPage() {
         <div className='rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
           <div className='text-sm font-medium'>Next</div>
           <ul className='mt-2 list-disc space-y-1 pl-5 text-sm text-white/75'>
-            {/* <li>
-              Integrate real severe weather alerts using the National Weather
-              Service (NWS) API.
-            </li> */}
-            <li>Add settings toggles for Fahrenheit/Celsius and mph/kph.</li>
-            <li>
-              Improve city search UX with keyboard navigation and recent
-              searches.
-            </li>
-            <li>
-              Add richer hourly visualizations (humidity, UV index,
-              sunrise/sunset markers).
-            </li>
-            <li>
-              Enhance weather scenes with Canvas-based particles and smoother
-              motion transitions.
-            </li>
+            <li>Location picker drawer (recent searches)</li>
+            <li>Animated background presets</li>
+            <li>Severe alerts (NWS) detail polish</li>
           </ul>
         </div>
       </div>

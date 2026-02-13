@@ -13,9 +13,14 @@ import type { Coords, WeatherAlert } from '../../api/schemas';
 import { fetchNwsAlertsByCoords } from '../../api/nws';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { useSavedCities } from '../../hooks/useSavedCities';
+import { useActiveLocation } from '../../hooks/useActiveLocation';
 
-const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 }; // Kansas City
+const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 };
 const FALLBACK_LABEL = 'Fallback: Kansas City';
+
+function stripLongWhitespace(s: string) {
+  return s.replace(/\n{3,}/g, '\n\n').trim();
+}
 
 function isExpired(expires?: number) {
   if (!expires) return false;
@@ -76,16 +81,13 @@ function severityPill(sev: WeatherAlert['severity']) {
 
 type SeverityFilter = WeatherAlert['severity'] | 'All';
 
-function stripLongWhitespace(s: string) {
-  return s.replace(/\n{3,}/g, '\n\n').trim();
-}
-
 export default function AlertsPage() {
+  const { active, setActive } = useActiveLocation();
+  const { cities } = useSavedCities();
+
   const [q, setQ] = useState('');
   const [severity, setSeverity] = useState<SeverityFilter>('All');
   const [hideExpired, setHideExpired] = useState(true);
-
-  const { cities } = useSavedCities();
 
   const { state, request, canUse } = useGeolocation({
     enableHighAccuracy: false,
@@ -93,21 +95,19 @@ export default function AlertsPage() {
     maximumAge: 10 * 60_000,
   });
 
-  const [selectedCityId, setSelectedCityId] = useState<string>(''); // '' = not selected
-
-  const selectedCity = useMemo(() => {
-    if (!selectedCityId) return null;
-    return cities.find((c) => c.id === selectedCityId) ?? null;
-  }, [cities, selectedCityId]);
-
   const geoCoords: Coords | null =
     state.status === 'ready' ? state.coords : null;
 
+  const selectedCity = useMemo(() => {
+    if (active.kind !== 'city') return null;
+    return cities.find((c) => c.id === active.cityId) ?? null;
+  }, [active, cities]);
+
   const effectiveCoords: Coords = useMemo(() => {
     if (selectedCity) return { lat: selectedCity.lat, lon: selectedCity.lon };
-    if (geoCoords) return geoCoords;
+    if (active.kind === 'geo' && geoCoords) return geoCoords;
     return FALLBACK_COORDS;
-  }, [selectedCity, geoCoords]);
+  }, [selectedCity, active.kind, geoCoords]);
 
   const sourceLabel = useMemo(() => {
     if (selectedCity) {
@@ -115,9 +115,12 @@ export default function AlertsPage() {
         selectedCity.country ? `, ${selectedCity.country}` : ''
       }`;
     }
-    if (geoCoords) return 'Current location';
+    if (active.kind === 'geo')
+      return geoCoords
+        ? 'Current location'
+        : 'Current location (waiting for GPS…)';
     return FALLBACK_LABEL;
-  }, [selectedCity, geoCoords]);
+  }, [selectedCity, active.kind, geoCoords]);
 
   const alertsQ = useQuery({
     queryKey: ['nws-alerts', effectiveCoords.lat, effectiveCoords.lon],
@@ -174,7 +177,6 @@ export default function AlertsPage() {
       map.All += 1;
       map[a.severity] += 1;
     }
-
     return map;
   }, [rawAlerts, hideExpired]);
 
@@ -206,7 +208,7 @@ export default function AlertsPage() {
           </div>
         </div>
 
-        {/* Location selector */}
+        {/* Source controls */}
         <div className='mt-4 grid gap-3 md:grid-cols-3'>
           <div className='rounded-2xl bg-black/20 p-3 ring-1 ring-white/10 md:col-span-2'>
             <div className='flex flex-wrap items-center justify-between gap-2'>
@@ -220,13 +222,21 @@ export default function AlertsPage() {
                 <button
                   type='button'
                   onClick={() => {
-                    setSelectedCityId('');
+                    setActive({ kind: 'geo' });
                     request();
                   }}
                   disabled={!canUse || state.status === 'loading'}
                   className='rounded-2xl bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 ring-1 ring-white/10 hover:bg-white/15 disabled:opacity-60'
                 >
                   {state.status === 'loading' ? 'Locating…' : 'Use my location'}
+                </button>
+
+                <button
+                  type='button'
+                  onClick={() => setActive({ kind: 'fallback' })}
+                  className='rounded-2xl bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 ring-1 ring-white/10 hover:bg-white/15'
+                >
+                  Use fallback
                 </button>
 
                 <button
@@ -240,7 +250,7 @@ export default function AlertsPage() {
               </div>
             </div>
 
-            {state.status === 'error' ? (
+            {active.kind === 'geo' && state.status === 'error' ? (
               <div className='mt-2 rounded-2xl bg-black/20 p-3 text-xs text-white/80 ring-1 ring-white/10'>
                 {state.message}
               </div>
@@ -250,8 +260,12 @@ export default function AlertsPage() {
           <div className='rounded-2xl bg-black/20 p-3 ring-1 ring-white/10'>
             <div className='text-xs text-white/70'>Saved city</div>
             <select
-              value={selectedCityId}
-              onChange={(e) => setSelectedCityId(e.target.value)}
+              value={active.kind === 'city' ? active.cityId : ''}
+              onChange={(e) => {
+                const id = e.target.value;
+                if (!id) setActive({ kind: 'fallback' });
+                else setActive({ kind: 'city', cityId: id });
+              }}
               className='mt-2 w-full rounded-2xl bg-black/20 px-3 py-2 text-sm text-white ring-1 ring-white/10 focus:outline-none focus:ring-2 focus:ring-white/20'
             >
               <option value=''>— none —</option>
@@ -265,7 +279,7 @@ export default function AlertsPage() {
             </select>
 
             <div className='mt-2 text-[11px] text-white/50'>
-              Tip: pick a saved city to view alerts for that area.
+              Selecting a city updates the global location.
             </div>
           </div>
         </div>
