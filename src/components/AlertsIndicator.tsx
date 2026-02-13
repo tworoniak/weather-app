@@ -16,7 +16,7 @@ export default function AlertsIndicator() {
 
   return (
     <Link
-      to='/'
+      to='/alerts'
       className='inline-flex items-center gap-2 rounded-full bg-red-500/15 px-3 py-1 text-xs font-medium text-red-100 ring-1 ring-red-400/25 hover:bg-red-500/20'
       title='Active weather alerts'
     >

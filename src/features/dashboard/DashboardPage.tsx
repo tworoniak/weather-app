@@ -138,10 +138,10 @@ export default function DashboardPage() {
         <div className='rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
           <div className='text-sm font-medium'>Next</div>
           <ul className='mt-2 list-disc space-y-1 pl-5 text-sm text-white/75'>
-            <li>
+            {/* <li>
               Integrate real severe weather alerts using the National Weather
               Service (NWS) API.
-            </li>
+            </li> */}
             <li>Add settings toggles for Fahrenheit/Celsius and mph/kph.</li>
             <li>
               Improve city search UX with keyboard navigation and recent
