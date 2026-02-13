@@ -1,12 +1,21 @@
 import { useEffect, useMemo } from 'react';
-import { X, MapPin, LocateFixed, Bookmark, AlertTriangle } from 'lucide-react';
+import {
+  X,
+  MapPin,
+  LocateFixed,
+  Bookmark,
+  AlertTriangle,
+  Clock,
+  Trash2,
+} from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useSavedCities } from '../hooks/useSavedCities';
 import { useActiveLocation } from '../hooks/useActiveLocation';
 import { useWeatherCachePreview } from '../hooks/useWeatherCachePreview';
-
+import { useRecentSearches } from '../hooks/useRecentSearches';
+import { clearRecentSearches } from '../store/recentSearches';
 import { fetchWeatherByCoords } from '../api/weather';
 import type { Coords } from '../api/schemas';
 
@@ -115,6 +124,7 @@ export default function LocationPickerDrawer({ open, onClose }: Props) {
   const { cities } = useSavedCities();
   const { active, setActive } = useActiveLocation();
   const previewMap = useWeatherCachePreview();
+  const { recent } = useRecentSearches();
 
   const { state, request, canUse } = useGeolocation({
     enableHighAccuracy: false,
@@ -203,7 +213,9 @@ export default function LocationPickerDrawer({ open, onClose }: Props) {
                 ? 'Current location'
                 : active.kind === 'city'
                   ? (activeCityLabel ?? 'Saved city')
-                  : 'Fallback (Kansas City)'}
+                  : active.kind === 'recent'
+                    ? active.label
+                    : 'Fallback (Kansas City)'}
             </div>
 
             {active.kind === 'geo' && state.status === 'error' ? (
@@ -260,6 +272,66 @@ export default function LocationPickerDrawer({ open, onClose }: Props) {
                 {active.kind === 'fallback' ? 'Selected' : ''}
               </span>
             </button>
+          </div>
+
+          {/* Recent searches */}
+          <div className='rounded-3xl bg-white/5 p-4 ring-1 ring-white/10'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-2'>
+                <Clock size={16} className='text-white/70' />
+                <div className='text-sm font-semibold'>Recent searches</div>
+              </div>
+
+              {recent.length > 0 ? (
+                <button
+                  type='button'
+                  onClick={clearRecentSearches}
+                  className='inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-1.5 text-xs text-white/70 ring-1 ring-white/10 hover:bg-white/10'
+                >
+                  <Trash2 size={14} />
+                  Clear
+                </button>
+              ) : null}
+            </div>
+
+            {recent.length === 0 ? (
+              <div className='mt-3 text-sm text-white/70'>
+                No recent searches yet.
+              </div>
+            ) : (
+              <div className='mt-3 grid gap-2'>
+                {recent.map((c) => {
+                  const label = cityLabel(c.name, c.region, c.country);
+
+                  return (
+                    <button
+                      key={c.id}
+                      type='button'
+                      onClick={() => {
+                        setActive({
+                          kind: 'recent',
+                          coords: { lat: c.lat, lon: c.lon },
+                          label,
+                        });
+                        onClose();
+                      }}
+                      className='flex w-full items-center justify-between rounded-2xl bg-black/20 px-4 py-3 text-left ring-1 ring-white/10 hover:bg-black/25'
+                    >
+                      <div className='min-w-0'>
+                        <div className='truncate text-sm font-medium'>
+                          {label}
+                        </div>
+                        <div className='mt-1 text-xs text-white/60'>
+                          {c.lat.toFixed(2)}, {c.lon.toFixed(2)}
+                        </div>
+                      </div>
+
+                      <span className='text-xs text-white/60'>Select</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className='rounded-3xl bg-white/5 p-4 ring-1 ring-white/10'>

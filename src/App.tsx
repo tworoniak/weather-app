@@ -50,7 +50,9 @@ export default function App() {
   const locationLabel = useMemo(() => {
     if (active.kind === 'geo') return 'Current location';
     if (active.kind === 'fallback') return 'Kansas City';
+    if (active.kind === 'recent') return active.label;
 
+    // active.kind === 'city'
     const c = cities.find((x) => x.id === active.cityId);
     if (!c) return 'Saved city';
     return c.name;

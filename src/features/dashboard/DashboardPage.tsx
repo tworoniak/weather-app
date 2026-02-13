@@ -193,7 +193,7 @@ export default function DashboardPage() {
         <div className='rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
           <div className='text-sm font-medium'>Next</div>
           <ul className='mt-2 list-disc space-y-1 pl-5 text-sm text-white/75'>
-            <li>Location picker drawer (recent searches)</li>
+            {/* <li>Location picker drawer (recent searches)</li> */}
             <li>Animated background presets</li>
             <li>Severe alerts (NWS) detail polish</li>
           </ul>

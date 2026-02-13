@@ -5,6 +5,7 @@ import { searchCities } from '../api/geocode';
 import { addCity } from '../store/savedCities';
 import { useSavedCities } from '../hooks/useSavedCities';
 import type { SavedCity } from '../api/schemas';
+import { addRecentSearch } from '../store/recentSearches';
 
 function stableCityId(r: {
   name: string;
@@ -104,6 +105,7 @@ export default function CitySearch() {
     };
 
     addCity(city);
+    addRecentSearch(city);
 
     setSavingId(null);
     setToast({ type: 'success', message: 'Saved ✓' });
