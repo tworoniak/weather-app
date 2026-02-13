@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import WeatherScene from '../../components/WeatherScene';
+// import WeatherScene from '../../components/WeatherScene';
 import ForecastCharts from '../../components/ForecastCharts';
 import AlertsBanner from '../../components/AlertsBanner';
 import { fetchWeatherByCity } from '../../api/weather';
@@ -30,8 +30,8 @@ export default function CityPage() {
     enabled: !!id && !!city,
   });
 
-  const condition = q.data?.current.condition ?? (city ? 'Loading' : 'City');
-  const isDay = q.data?.current.isDay ?? true;
+  // const condition = q.data?.current.condition ?? (city ? 'Loading' : 'City');
+  // const isDay = q.data?.current.isDay ?? true;
 
   function handleConfirmRemove() {
     if (!id) return;
@@ -79,9 +79,9 @@ export default function CityPage() {
 
   return (
     <div className='relative'>
-      <div className='absolute inset-0 -z-10'>
+      {/* <div className='absolute inset-0 -z-10'>
         <WeatherScene condition={condition} isDay={isDay} />
-      </div>
+      </div> */}
       <div className='space-y-4'>
         <div className='rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
           <div className='flex flex-wrap items-start justify-between gap-3'>
