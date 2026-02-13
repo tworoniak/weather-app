@@ -14,9 +14,10 @@ import { fetchNwsAlertsByCoords } from '../../api/nws';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { useSavedCities } from '../../hooks/useSavedCities';
 import { useActiveLocation } from '../../hooks/useActiveLocation';
+import { reverseGeocode, formatPlaceName } from '../../api/geocode';
 
 const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 };
-const FALLBACK_LABEL = 'Fallback: Kansas City';
+const FALLBACK_LABEL = 'Kansas City, MO, US';
 
 function stripLongWhitespace(s: string) {
   return s.replace(/\n{3,}/g, '\n\n').trim();
@@ -81,6 +82,10 @@ function severityPill(sev: WeatherAlert['severity']) {
 
 type SeverityFilter = WeatherAlert['severity'] | 'All';
 
+function cityLabel(name: string, region?: string, country?: string) {
+  return `${name}${region ? `, ${region}` : ''}${country ? `, ${country}` : ''}`;
+}
+
 export default function AlertsPage() {
   const { active, setActive } = useActiveLocation();
   const { cities } = useSavedCities();
@@ -103,24 +108,51 @@ export default function AlertsPage() {
     return cities.find((c) => c.id === active.cityId) ?? null;
   }, [active, cities]);
 
+  // ✅ Coords selection now includes "recent"
   const effectiveCoords: Coords = useMemo(() => {
+    if (active.kind === 'recent') return active.coords;
     if (selectedCity) return { lat: selectedCity.lat, lon: selectedCity.lon };
     if (active.kind === 'geo' && geoCoords) return geoCoords;
     return FALLBACK_COORDS;
-  }, [selectedCity, active.kind, geoCoords]);
+  }, [active, selectedCity, geoCoords]);
 
-  const sourceLabel = useMemo(() => {
-    if (selectedCity) {
-      return `${selectedCity.name}${selectedCity.region ? `, ${selectedCity.region}` : ''}${
-        selectedCity.country ? `, ${selectedCity.country}` : ''
-      }`;
-    }
+  // Base label before reverse-geocode
+  const baseLabel = useMemo(() => {
+    if (active.kind === 'recent') return active.label;
+    if (selectedCity)
+      return cityLabel(
+        selectedCity.name,
+        selectedCity.region,
+        selectedCity.country,
+      );
     if (active.kind === 'geo')
       return geoCoords
         ? 'Current location'
         : 'Current location (waiting for GPS…)';
     return FALLBACK_LABEL;
-  }, [selectedCity, active.kind, geoCoords]);
+  }, [active, selectedCity, geoCoords]);
+
+  // ✅ Reverse geocode only for GEO + real fix
+  const placeQ = useQuery({
+    queryKey: [
+      'reverse',
+      effectiveCoords.lat,
+      effectiveCoords.lon,
+      active.kind,
+      state.status,
+    ],
+    queryFn: async () => {
+      const r = await reverseGeocode(effectiveCoords.lat, effectiveCoords.lon);
+      return r ? formatPlaceName(r) : null;
+    },
+    enabled: active.kind === 'geo' && state.status === 'ready',
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const sourceLabel =
+    active.kind === 'geo' && state.status === 'ready'
+      ? (placeQ.data ?? baseLabel)
+      : baseLabel;
 
   const alertsQ = useQuery({
     queryKey: ['nws-alerts', effectiveCoords.lat, effectiveCoords.lon],
@@ -216,6 +248,11 @@ export default function AlertsPage() {
                 <MapPin size={16} className='text-white/50' />
                 Source:{' '}
                 <span className='font-medium text-white/85'>{sourceLabel}</span>
+                {active.kind === 'geo' &&
+                state.status === 'ready' &&
+                placeQ.isFetching ? (
+                  <span className='text-white/50'>• resolving…</span>
+                ) : null}
               </div>
 
               <div className='flex flex-wrap items-center gap-2'>
@@ -244,7 +281,9 @@ export default function AlertsPage() {
                   onClick={() => alertsQ.refetch()}
                   className='inline-flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-1.5 text-xs font-medium text-white/80 ring-1 ring-white/10 hover:bg-white/15'
                 >
-                  <RefreshCcw size={14} />
+                  <span className='inline-flex'>
+                    <RefreshCcw size={14} />
+                  </span>
                   Refresh
                 </button>
               </div>
@@ -448,13 +487,13 @@ export default function AlertsPage() {
                 </div>
 
                 {a.description ? (
-                  <div className='mt-3 rounded-2xl bg-black/20 p-3 text-xs text-white/75 ring-1 ring-white/10 whitespace-pre-wrap'>
+                  <div className='mt-3 whitespace-pre-wrap rounded-2xl bg-black/20 p-3 text-xs text-white/75 ring-1 ring-white/10'>
                     {stripLongWhitespace(a.description)}
                   </div>
                 ) : null}
 
                 {a.instruction ? (
-                  <div className='mt-2 rounded-2xl bg-black/20 p-3 text-xs text-white/75 ring-1 ring-white/10 whitespace-pre-wrap'>
+                  <div className='mt-2 whitespace-pre-wrap rounded-2xl bg-black/20 p-3 text-xs text-white/75 ring-1 ring-white/10'>
                     <div className='mb-1 text-[11px] font-semibold text-white/85'>
                       Instructions
                     </div>

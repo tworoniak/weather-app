@@ -1,22 +1,27 @@
 # Weather App (But Actually Cool) 🌦️
 
-A modern weather dashboard built with **React + TypeScript** featuring geolocation support, **animated weather scene backgrounds**, **daily + hourly forecast charts**, saved cities, and an alert system ready for real severe weather integration.
+A modern weather dashboard built with **React + TypeScript** featuring geolocation support, **animated weather scene backgrounds**, **daily + hourly forecast charts**, saved cities, **recent searches**, and **live severe weather alerts via the National Weather Service (NWS)**.
 
-This project is designed as both a practical daily-use app and a portfolio-ready example of clean UI, scalable architecture, and modern frontend patterns.
+Designed as both a practical daily-use app and a portfolio-ready example of clean UI, scalable architecture, and modern frontend patterns.
 
 ---
 
 ## ✨ Features
 
-### 📍 Geolocation Forecast
+### 📍 Location System (Global Active Location)
 
-- Uses browser geolocation to load your local forecast
-- Falls back to a default city when location is unavailable
-- Reverse geocoding support to display a real city name instead of coordinates
+The app uses a single **active location** state shared across the Dashboard + Alerts pages:
+
+- **Geo** — browser geolocation (GPS-based)
+- **Saved City** — from your saved list
+- **Recent Search** — quick access without saving
+- **Fallback** — Kansas City when location is unavailable
+
+Includes **reverse geocoding** so geo mode can display a real city name instead of coordinates.
 
 ### 🎨 Animated Weather Scene Backgrounds
 
-- Full-page animated background system based on current conditions
+- Full-page background scene system based on current conditions
 - Scene mapping based on **condition + isDay**
 - Includes presets such as:
   - Clear Day / Clear Night
@@ -24,7 +29,7 @@ This project is designed as both a practical daily-use app and a portfolio-ready
   - Rain
   - Snow
   - Fog
-  - Thunder (with lightning flash effect)
+  - Thunder (lightning flash effect)
 
 ### 📈 Forecast Charts (Daily + Hourly)
 
@@ -40,14 +45,28 @@ Built with **Recharts**, designed to be expandable for more data types later.
 
 - Search and save frequently checked locations
 - Stored locally via **LocalStorage**
-- Includes route-based city pages (`/city/:id`)
+- City routes (`/city/:id`)
 - Cross-tab and same-tab updates supported
+- **Location picker drawer** shows cached previews and tiny high/low sparklines when available
 
-### ⚠️ Alerts System (Ready for NWS Integration)
+### 🕘 Recent Searches
 
-- Alert banner UI component already in place
-- Designed for real severe weather integration (ex: NWS API)
-- Supports expandable detail view patterns
+- Recent searched cities are stored locally (no save required)
+- Quick-select from the location drawer
+- Clearable list (LocalStorage)
+
+### ⚠️ Severe Weather Alerts (Live via NWS)
+
+- Dedicated Alerts page (`/alerts`)
+- Live alerts from the **National Weather Service** endpoint:
+  - Severity (Extreme/Severe/Moderate/Minor/Unknown)
+  - Urgency + certainty
+  - Effective/expires timestamps
+  - Description + instructions
+- Filtering + search:
+  - Text search
+  - Severity chips
+  - Hide expired toggle
 
 ---
 
@@ -61,11 +80,7 @@ Built with **Recharts**, designed to be expandable for more data types later.
 - **Axios**
 - **Zod**
 - **Recharts**
-
-Optional (planned / expandable):
-
-- **Framer Motion** (for advanced scene crossfades)
-- **NWS API** integration (severe weather alerts)
+- **Lucide Icons**
 
 ---
 
@@ -75,15 +90,14 @@ Optional (planned / expandable):
 
 Weather data is powered by Open-Meteo:
 
+- Current conditions
 - Daily forecast (7-day)
 - Hourly forecast (next 48 hours)
-- Current conditions
 
 Example API request:
 
-```txt
+````txt
 https://api.open-meteo.com/v1/forecast?latitude=39.0997&longitude=-94.5786&current=temperature_2m,weather_code,is_day,wind_speed_10m&hourly=temperature_2m,precipitation_probability,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code,sunrise,sunset&timezone=auto&forecast_days=7
-```
 
 ---
 
@@ -94,6 +108,7 @@ src/
   api/ # API clients, schemas, and provider adapters
     client.ts
     geocode.ts
+    nws.ts
     schemas.ts
     weather.ts
 
@@ -102,11 +117,15 @@ src/
 
   components/ # Reusable UI components
     AlertsBanner.tsx
+    AlertsIndicator.tsx
     CitySearch.tsx
     ForecastCharts.tsx
+    LocationPickerDrawer.tsx
     WeatherScene.tsx
 
   features/ # Route-based feature modules (pages)
+    alerts/
+      AlertsPage.tsx
     city/
       CityPage.tsx
     dashboard/
@@ -114,12 +133,16 @@ src/
     saved/
       SavedCitiesPage.tsx
 
-  hooks/ # Custom hooks (geolocation, saved cities, etc.)
+  hooks/ # Custom hooks (geolocation, saved cities, active location, etc.)
+    useActiveLocation.ts
     useGeolocation.ts
     useLocalStorage.ts
+    useRecentSearches.ts
     useSavedCities.ts
+    useWeatherCachePreview.ts
 
   store/ # LocalStorage-based stores
+    recentSearches.ts
     savedCities.ts
 
   utils/ # Helper utilities
@@ -129,4 +152,5 @@ src/
   main.tsx # React bootstrap + Query Client provider
   index.css # Global styles (Tailwind)
 
-```
+
+````
