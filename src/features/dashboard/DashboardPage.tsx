@@ -15,6 +15,9 @@ import { reverseGeocode, formatPlaceName } from '../../api/geocode';
 
 import type { Coords } from '../../api/schemas';
 
+const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 };
+const FALLBACK_LABEL = 'Kansas City, MO, US';
+
 function cityLabel(name: string, region?: string, country?: string) {
   return `${name}${region ? `, ${region}` : ''}${country ? `, ${country}` : ''}`;
 }
@@ -28,9 +31,6 @@ export default function DashboardPage() {
     timeout: 30_000,
     maximumAge: 10 * 60_000,
   });
-
-  const fallbackCoords: Coords = { lat: 39.0997, lon: -94.5786 };
-  const fallbackLabel = 'Kansas City, MO, US';
 
   // If active is geo and we don't have coords yet, request once.
   const requestedGeoRef = useRef(false);
@@ -57,7 +57,7 @@ export default function DashboardPage() {
     if (active.kind === 'city' && activeCity)
       return { lat: activeCity.lat, lon: activeCity.lon };
     if (active.kind === 'geo' && state.status === 'ready') return state.coords;
-    return fallbackCoords;
+    return FALLBACK_COORDS;
   }, [active, activeCity, state]);
 
   // Base label (may be improved by reverse geocode when geo is ready)
@@ -66,7 +66,7 @@ export default function DashboardPage() {
     if (active.kind === 'city' && activeCity)
       return cityLabel(activeCity.name, activeCity.region, activeCity.country);
     if (active.kind === 'geo') return 'Current location';
-    return fallbackLabel;
+    return FALLBACK_LABEL;
   }, [active, activeCity]);
 
   // Reverse geocode only for GEO when we have a real fix
@@ -115,7 +115,6 @@ export default function DashboardPage() {
               <h1 className='text-xl font-semibold'>Local Forecast</h1>
             </div>
 
-            {/* Only show this button if geo is possible */}
             <div className='flex items-center gap-2'>
               <button
                 onClick={request}
