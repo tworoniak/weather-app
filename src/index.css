@@ -14,18 +14,12 @@
 
 /* Optional utility for subtle photo hover effect */
 @layer components {
-  /* .photo-hover {
-    @apply transition-transform duration-300 hover:scale-[1.02];
-  } */
 }
 
 @layer utilities {
   button {
     @apply cursor-pointer;
   }
-  /* .bg-photo-gradient {
-    @apply bg-linear-to-t from-background/50 via-surface/15 to-accent/15;
-  } */
 }
 
 html,

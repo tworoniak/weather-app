@@ -112,9 +112,6 @@ src/
     schemas.ts
     weather.ts
 
-  assets/ # Static assets bundled by Vite
-    react.svg
-
   components/ # Reusable UI components
     AlertsBanner.tsx
     AlertsIndicator.tsx

@@ -19,10 +19,6 @@ export default {
         accent2: '#fb8500', // orange
 
         matteBlack: '#212738',
-        // eggplant: '#42313b',
-        // taupe: '#595149',
-        // slateGray: '#6b7893',
-        // lavender: '#eaeafc',
 
         // Monochromatic
         whiteSmoke: '#f5f5f5ff',
