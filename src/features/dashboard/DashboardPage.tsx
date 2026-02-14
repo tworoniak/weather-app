@@ -7,6 +7,7 @@ import CitySearch from '../../components/CitySearch';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { useActiveLocation } from '../../hooks/useActiveLocation';
 import { useSavedCities } from '../../hooks/useSavedCities';
+import ForecastCards from '../../components/ForecastCards';
 
 import { fetchWeatherByCoords } from '../../api/weather';
 import { reverseGeocode, formatPlaceName } from '../../api/geocode';
@@ -167,6 +168,7 @@ export default function DashboardPage() {
 
               <div className='space-y-4 md:col-span-2'>
                 <AlertsBanner data={weatherQ.data} />
+                <ForecastCards data={weatherQ.data} />
                 <ForecastCharts data={weatherQ.data} />
               </div>
             </div>
