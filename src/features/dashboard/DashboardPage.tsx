@@ -99,7 +99,7 @@ export default function DashboardPage() {
   return (
     <div className='relative'>
       <div className='space-y-4'>
-        <div className='relative rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
+        <div className='relative overflow-hidden rounded-3xl bg-white/5 p-5 ring-1 ring-white/10'>
           <div className='flex flex-wrap items-center justify-between gap-3'>
             <div>
               <div className='text-xs text-white/70'>Dashboard</div>
@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className='space-y-4 md:col-span-2'>
+              <div className='min-w-0 space-y-4 md:col-span-2'>
                 <AlertsBanner data={weatherQ.data} />
                 <ForecastCards data={weatherQ.data} />
                 <ForecastCharts data={weatherQ.data} />

@@ -68,7 +68,7 @@ export default function App() {
   }, [active, cities]);
 
   return (
-    <div className='min-h-screen text-white'>
+    <div className='min-h-screen text-white overflow-x-hidden'>
       {/* Full-viewport animated background */}
       <AppBackground />
       {/* subtle contrast overlay so UI stays readable */}

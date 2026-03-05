@@ -128,7 +128,7 @@ export default function ForecastCharts({ data }: { data: WeatherSnapshot }) {
         daily.length === 0 ? (
           <div className='mt-4 text-sm text-white/70'>No daily data.</div>
         ) : (
-          <div className='mt-4 h-56'>
+          <div className='min-w-0 mt-4 h-56'>
             <ResponsiveContainer width='100%' height='100%'>
               <LineChart data={daily} margin={{ left: 8, right: 8, top: 10 }}>
                 <CartesianGrid strokeOpacity={0.2} />

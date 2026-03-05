@@ -61,7 +61,7 @@ export default function ForecastCards({ data }: Props) {
         <div className='text-xs text-white/50'>Scroll</div>
       </div>
 
-      <div className='mt-3 -mx-1 overflow-x-auto pb-2'>
+      <div className='mt-3 max-w-full overflow-x-auto pb-2'>
         <div className='flex snap-x snap-mandatory gap-3 px-1'>
           {cards.map((c) => (
             <div
