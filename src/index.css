@@ -33,3 +33,36 @@ body {
   justify-content: space-between;
   min-height: 100%;
 }
+
+/* // Firefox (still limited, but we can make it subtle)
+// scrollbar-width: thin;
+// scrollbar-color: transparent transparent; */
+
+/* // Chrome / Edge / Safari */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  transition: background 0.25s ease;
+}
+
+/* // Reveal scrollbar only on hover/focus
+// &:hover,
+// &:focus-within {
+//   scrollbar-color: var(--color-scrollbar-thumb) transparent;
+
+//   &::-webkit-scrollbar-thumb {
+//     background: var(--color-scrollbar-thumb);
+//   }
+
+//   &::-webkit-scrollbar-thumb:hover {
+//     background: var(--color-scrollbar-thumb-hover);
+//   }
+// } */
