@@ -1,8 +1,18 @@
-# Weather App (But Actually Cool) 🌦️
+# ☀️ ReactWeather App 🌦️
 
 A modern weather dashboard built with **React + TypeScript** featuring geolocation support, **animated weather scene backgrounds**, **daily + hourly forecast charts**, saved cities, **recent searches**, and **live severe weather alerts via the National Weather Service (NWS)**.
 
 Designed as both a practical daily-use app and a portfolio-ready example of clean UI, scalable architecture, and modern frontend patterns.
+
+---
+
+## 🚀 Live Demo
+
+[ReactWeather](https://weather-app-snowy-phi.vercel.app)
+
+![Press Contact Portal screen 1.](/src/assets/screen-01.png 'Press Contact Portal screen 1.')
+![Press Contact Portal screen 2.](/src/assets/screen-02.png 'Press Contact Portal screen 2.')
+![Press Contact Portal screen 3.](/src/assets/screen-03.png 'Press Contact Portal screen 3.')
 
 ---
 
