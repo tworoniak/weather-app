@@ -65,9 +65,6 @@ export default function CityPage() {
             </Link>
           </div>
 
-          <div className='mt-4 text-xs text-white/50'>
-            Debug: param id = {String(id)}
-          </div>
         </div>
       </div>
     );

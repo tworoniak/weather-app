@@ -15,55 +15,15 @@ import { useGeolocation } from '../../hooks/useGeolocation';
 import { useSavedCities } from '../../hooks/useSavedCities';
 import { useActiveLocation } from '../../hooks/useActiveLocation';
 import { reverseGeocode, formatPlaceName } from '../../api/geocode';
-
-const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 };
-const FALLBACK_LABEL = 'Kansas City, MO, US';
-
-function stripLongWhitespace(s: string) {
-  return s.replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function isExpired(expires?: number) {
-  if (!expires) return false;
-  return expires <= Date.now();
-}
-
-function severityRank(sev: WeatherAlert['severity']) {
-  switch (sev) {
-    case 'Extreme':
-      return 0;
-    case 'Severe':
-      return 1;
-    case 'Moderate':
-      return 2;
-    case 'Minor':
-      return 3;
-    default:
-      return 4;
-  }
-}
-
-function formatTime(ts?: number) {
-  if (!ts) return null;
-  const d = new Date(ts);
-  return d.toLocaleString([], {
-    weekday: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function timeUntil(ts?: number) {
-  if (!ts) return null;
-  const ms = ts - Date.now();
-  if (!Number.isFinite(ms)) return null;
-  if (ms <= 0) return 'Expired';
-
-  const totalMin = Math.round(ms / 60000);
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  return h <= 0 ? `${m}m` : `${h}h ${m}m`;
-}
+import { cityLabel } from '../../utils/cityLabel';
+import { FALLBACK_COORDS, FALLBACK_LABEL } from '../../constants';
+import {
+  formatTime,
+  timeUntil,
+  stripLongWhitespace,
+  isExpired,
+  severityRank,
+} from '../../utils/alertUtils';
 
 function severityPill(sev: WeatherAlert['severity']) {
   switch (sev) {
@@ -81,10 +41,6 @@ function severityPill(sev: WeatherAlert['severity']) {
 }
 
 type SeverityFilter = WeatherAlert['severity'] | 'All';
-
-function cityLabel(name: string, region?: string, country?: string) {
-  return `${name}${region ? `, ${region}` : ''}${country ? `, ${country}` : ''}`;
-}
 
 export default function AlertsPage() {
   const { active, setActive } = useActiveLocation();

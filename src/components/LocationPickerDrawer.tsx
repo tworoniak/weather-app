@@ -18,6 +18,7 @@ import { useRecentSearches } from '../hooks/useRecentSearches';
 import { clearRecentSearches } from '../store/recentSearches';
 import { fetchWeatherByCoords } from '../api/weather';
 import type { Coords } from '../api/schemas';
+import { cityLabel } from '../utils/cityLabel';
 
 type Props = {
   open: boolean;
@@ -106,10 +107,6 @@ function Sparkline({
       />
     </svg>
   );
-}
-
-function cityLabel(name: string, region?: string, country?: string) {
-  return `${name}${region ? `, ${region}` : ''}${country ? `, ${country}` : ''}`;
 }
 
 function previewAge(updatedAt?: number) {

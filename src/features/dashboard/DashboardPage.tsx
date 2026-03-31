@@ -11,15 +11,8 @@ import ForecastCards from '../../components/ForecastCards';
 
 import { fetchWeatherByCoords } from '../../api/weather';
 import { reverseGeocode, formatPlaceName } from '../../api/geocode';
-
-import type { Coords } from '../../api/schemas';
-
-const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 };
-const FALLBACK_LABEL = 'Kansas City, MO, US';
-
-function cityLabel(name: string, region?: string, country?: string) {
-  return `${name}${region ? `, ${region}` : ''}${country ? `, ${country}` : ''}`;
-}
+import { cityLabel } from '../../utils/cityLabel';
+import { FALLBACK_COORDS, FALLBACK_LABEL } from '../../constants';
 
 export default function DashboardPage() {
   const { active } = useActiveLocation();

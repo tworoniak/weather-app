@@ -7,14 +7,8 @@ import { useSavedCities } from '../hooks/useSavedCities';
 import { useGeolocation } from '../hooks/useGeolocation';
 
 import { fetchWeatherByCoords } from '../api/weather';
-import type { Coords } from '../api/schemas';
-
-const FALLBACK_COORDS: Coords = { lat: 39.0997, lon: -94.5786 };
-const FALLBACK_LABEL = 'Kansas City, MO, US';
-
-function cityLabel(name: string, region?: string, country?: string) {
-  return `${name}${region ? `, ${region}` : ''}${country ? `, ${country}` : ''}`;
-}
+import { cityLabel } from '../utils/cityLabel';
+import { FALLBACK_COORDS, FALLBACK_LABEL } from '../constants';
 
 export default function AppBackground() {
   const { active } = useActiveLocation();
@@ -48,7 +42,7 @@ export default function AppBackground() {
   }, [active, activeCity]);
 
   const weatherQ = useQuery({
-    queryKey: ['weather', 'bg', coords.lat, coords.lon, label],
+    queryKey: ['weather', 'coords', coords.lat, coords.lon, label],
     queryFn: () => fetchWeatherByCoords(coords, label),
     staleTime: 2 * 60 * 1000,
   });
