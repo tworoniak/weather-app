@@ -55,13 +55,13 @@ export default function WeatherScene({
       <SceneLayer active={scene === 'rain'}>
         <BaseGradient kind='rain' />
         <Clouds intensity='high' />
-        <RainParticles />
+        <RainParticles active={scene === 'rain'} />
       </SceneLayer>
 
       <SceneLayer active={scene === 'snow'}>
         <BaseGradient kind='snow' />
         <Clouds intensity='med' />
-        <SnowParticles />
+        <SnowParticles active={scene === 'snow'} />
       </SceneLayer>
 
       <SceneLayer active={scene === 'fog'}>
@@ -72,7 +72,7 @@ export default function WeatherScene({
       <SceneLayer active={scene === 'thunder'}>
         <BaseGradient kind='thunder' />
         <Clouds intensity='high' />
-        <RainParticles />
+        <RainParticles active={scene === 'thunder'} />
         <LightningFlash />
       </SceneLayer>
 
@@ -242,11 +242,12 @@ type Drop = {
   w: number;
 };
 
-function RainParticles() {
+function RainParticles({ active }: { active: boolean }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   useCanvasSize(ref);
 
   useEffect(() => {
+    if (!active) return;
     const c = ref.current;
     if (!c) return;
     if (prefersReducedMotion()) return;
@@ -347,7 +348,7 @@ function RainParticles() {
     raf = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [active]);
 
   return (
     <canvas
@@ -366,11 +367,12 @@ type Flake = {
   vy: number;
 };
 
-function SnowParticles() {
+function SnowParticles({ active }: { active: boolean }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
   useCanvasSize(ref);
 
   useEffect(() => {
+    if (!active) return;
     const c = ref.current;
     if (!c) return;
     if (prefersReducedMotion()) return;
@@ -439,7 +441,7 @@ function SnowParticles() {
     raf = requestAnimationFrame(step);
 
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [active]);
 
   return (
     <canvas

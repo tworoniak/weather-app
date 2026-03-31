@@ -9,21 +9,13 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-
-function severityRank(sev: WeatherAlert['severity']) {
-  switch (sev) {
-    case 'Extreme':
-      return 0;
-    case 'Severe':
-      return 1;
-    case 'Moderate':
-      return 2;
-    case 'Minor':
-      return 3;
-    default:
-      return 4;
-  }
-}
+import {
+  formatTime,
+  timeUntil,
+  stripLongWhitespace,
+  isExpired,
+  severityRank,
+} from '../utils/alertUtils';
 
 function renderSeverityIcon(sev: WeatherAlert['severity']) {
   switch (sev) {
@@ -85,43 +77,9 @@ function severityStyles(sev: WeatherAlert['severity']) {
   }
 }
 
-function formatTime(ts?: number) {
-  if (!ts) return null;
-  const d = new Date(ts);
-  return d.toLocaleString([], {
-    weekday: 'short',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function timeUntil(ts?: number) {
-  if (!ts) return null;
-  const ms = ts - Date.now();
-  if (!Number.isFinite(ms)) return null;
-
-  if (ms <= 0) return 'Expired';
-
-  const totalMin = Math.round(ms / 60000);
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-
-  if (h <= 0) return `${m}m`;
-  return `${h}h ${m}m`;
-}
-
 function safeText(s?: string) {
   const t = s?.trim();
   return t ? t : null;
-}
-
-function stripLongWhitespace(s: string) {
-  return s.replace(/\n{3,}/g, '\n\n').trim();
-}
-
-function isExpired(a: WeatherAlert) {
-  if (!a.expires) return false;
-  return a.expires <= Date.now();
 }
 
 export default function AlertsBanner({ data }: { data: WeatherSnapshot }) {
@@ -131,7 +89,7 @@ export default function AlertsBanner({ data }: { data: WeatherSnapshot }) {
   const alerts = useMemo(() => data.alerts ?? [], [data.alerts]);
 
   const sorted = useMemo(() => {
-    const active = alerts.filter((a) => !isExpired(a));
+    const active = alerts.filter((a) => !isExpired(a.expires));
 
     return [...active].sort((a, b) => {
       const r = severityRank(a.severity) - severityRank(b.severity);

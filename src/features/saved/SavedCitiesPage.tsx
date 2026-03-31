@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { addCity, removeCity } from '../../store/savedCities';
+import { removeCity } from '../../store/savedCities';
 import { useSavedCities } from '../../hooks/useSavedCities';
-import type { SavedCity } from '../../api/schemas';
 
 type Toast =
   | { type: 'success'; message: string }
@@ -53,21 +52,6 @@ export default function SavedCitiesPage() {
     return () => window.clearTimeout(t);
   }, [toast]);
 
-  function handleAddDemo() {
-    const demo: SavedCity = {
-      id: 'kansas-city',
-      name: 'Kansas City',
-      region: 'MO',
-      country: 'US',
-      lat: 39.0997,
-      lon: -94.5786,
-      // addedAt set in store
-    };
-
-    addCity(demo);
-    setToast({ type: 'success', message: 'Saved ✓' });
-  }
-
   function handleRemove(id: string, name: string) {
     removeCity(id);
     setToast({ type: 'info', message: `Removed ${name}` });
@@ -99,13 +83,6 @@ export default function SavedCitiesPage() {
                 {toast.message}
               </div>
             ) : null}
-
-            <button
-              onClick={handleAddDemo}
-              className='rounded-2xl bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/15'
-            >
-              Add demo city
-            </button>
 
             <Link
               to='/'
