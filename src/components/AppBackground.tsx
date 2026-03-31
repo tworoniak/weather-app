@@ -7,6 +7,7 @@ import { useSavedCities } from '../hooks/useSavedCities';
 import { useGeolocation } from '../hooks/useGeolocation';
 
 import { fetchWeatherByCoords } from '../api/weather';
+import type { Coords } from '../api/schemas';
 import { cityLabel } from '../utils/cityLabel';
 import { FALLBACK_COORDS, FALLBACK_LABEL } from '../constants';
 
