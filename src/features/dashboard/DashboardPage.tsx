@@ -11,6 +11,7 @@ import ForecastCards from '../../components/ForecastCards';
 
 import { fetchWeatherByCoords } from '../../api/weather';
 import { reverseGeocode, formatPlaceName } from '../../api/geocode';
+import type { Coords } from '../../api/schemas';
 import { cityLabel } from '../../utils/cityLabel';
 import { FALLBACK_COORDS, FALLBACK_LABEL } from '../../constants';
 
